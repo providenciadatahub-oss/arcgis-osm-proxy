@@ -6,8 +6,7 @@ const koop = new Koop()
 koop.register(nominatim)
 
 const app = express()
-
-// Esto evita que ArcGIS Online bloquee tu servicio por seguridad (CORS)
+// Importante: Esto permite que ArcGIS se conecte sin bloqueos
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -17,4 +16,4 @@ app.use((req, res, next) => {
 app.use(koop.server)
 
 const port = process.env.PORT || 8080
-app.listen(port, () => console.log(`Proxy GIS corriendo en puerto ${port}`))
+app.listen(port, () => console.log(`Proxy GIS activo en puerto ${port}`))
