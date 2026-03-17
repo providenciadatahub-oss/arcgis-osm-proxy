@@ -5,40 +5,49 @@ const app = express();
 
 app.use(cors());
 
-// Simular el endpoint de ArcGIS para que Experience Builder lo reconozca
+// ESTO ES LO QUE ARREGLA LA INCOMPATIBILIDAD
 app.get('/nominatim/rest/services/GeocodeServer', (req, res) => {
     res.json({
         currentVersion: 10.81,
-        serviceDescription: "Proxy Nominatim",
+        serviceDescription: "Nominatim Proxy",
         addressTypes: ["StreetAddress"],
-        capabilities: "Geocode",
+        capabilities: "Geocode,ReverseGeocode", // Añadido ReverseGeocode
         spatialReference: { wkid: 4326, latestWkid: 4326 },
-        locatorProperties: { MaxBatchSize: 10 }
+        locatorProperties: { MaxBatchSize: 100, MaxResultSize: 100 },
+        locators: [],
+        singleLineAddressField: { name: "SingleLine", type: "esriFieldTypeString", alias: "Single Line Input", required: false, length: 100 }
     });
 });
 
-// Realizar la búsqueda real en OSM
 app.get('/nominatim/rest/services/GeocodeServer/findAddressCandidates', async (req, res) => {
     const query = req.query.SingleLine || req.query.address || "";
-    if (!query) return res.json({ candidates: [] });
+    if (!query) return res.json({ spatialReference: { wkid: 4326 }, candidates: [] });
 
     try {
-        const response = await axios.get(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`, {
-            headers: { 'User-Agent': 'ArcGIS-OSM-Proxy-Personal' }
+        const response = await axios.get(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=10`, {
+            headers: { 'User-Agent': 'ArcGIS-OSM-Proxy-Utility' }
         });
         
         const candidates = response.data.map(item => ({
             address: item.display_name,
             location: { x: parseFloat(item.lon), y: parseFloat(item.lat) },
             score: 100,
-            attributes: { }
+            attributes: { 
+                Match_addr: item.display_name,
+                Addr_type: "StreetAddress" 
+            }
         }));
         
-        res.json({ spatialReference: { wkid: 4326 }, candidates });
+        res.json({ spatialReference: { wkid: 4326, latestWkid: 4326 }, candidates });
     } catch (error) {
-        res.status(500).json({ error: "Error de conexión con OSM" });
+        res.status(500).json({ error: "Error de red" });
     }
 });
 
-const port = process.env.PORT || 8080;
-app.listen(port, () => console.log(`Servidor corriendo en puerto ${port}`));
+// Endpoint extra por si ArcGIS pregunta por el formato
+app.get('/nominatim/rest/services/GeocodeServer/', (req, res) => {
+    res.redirect('/nominatim/rest/services/GeocodeServer');
+});
+
+const port = process.env.PORT || 10000;
+app.listen(port, () => console.log(`Servidor activo`));
