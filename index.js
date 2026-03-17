@@ -5,17 +5,30 @@ const app = express();
 
 app.use(cors());
 
-// ESTO ES LO QUE ARREGLA LA INCOMPATIBILIDAD
+// ESTO ES LO QUE ARREGLA LA VALIDACIÓN DE ARCGIS
 app.get('/nominatim/rest/services/GeocodeServer', (req, res) => {
     res.json({
         currentVersion: 10.81,
         serviceDescription: "Nominatim Proxy",
         addressTypes: ["StreetAddress"],
-        capabilities: "Geocode,ReverseGeocode", // Añadido ReverseGeocode
+        capabilities: "Geocode,ReverseGeocode",
         spatialReference: { wkid: 4326, latestWkid: 4326 },
         locatorProperties: { MaxBatchSize: 100, MaxResultSize: 100 },
         locators: [],
-        singleLineAddressField: { name: "SingleLine", type: "esriFieldTypeString", alias: "Single Line Input", required: false, length: 100 }
+        countries: ["AR", "CL", "MX", "ES", "CO"], // Puedes añadir más países
+        shortName: "OSM",
+        singleLineAddressField: { 
+            name: "SingleLine", 
+            type: "esriFieldTypeString", 
+            alias: "Single Line Input", 
+            required: false, 
+            length: 200 
+        },
+        candidateFields: [
+            { name: "Shape", type: "esriFieldTypeGeometry", alias: "Shape" },
+            { name: "Score", type: "esriFieldTypeDouble", alias: "Score" },
+            { name: "Match_addr", type: "esriFieldTypeString", alias: "Match_addr" }
+        ]
     });
 });
 
@@ -44,10 +57,10 @@ app.get('/nominatim/rest/services/GeocodeServer/findAddressCandidates', async (r
     }
 });
 
-// Endpoint extra por si ArcGIS pregunta por el formato
-app.get('/nominatim/rest/services/GeocodeServer/', (req, res) => {
+// Forzar que responda a la URL con o sin barra al final
+app.use('/nominatim/rest/services/GeocodeServer', (req, res) => {
     res.redirect('/nominatim/rest/services/GeocodeServer');
 });
 
 const port = process.env.PORT || 10000;
-app.listen(port, () => console.log(`Servidor activo`));
+app.listen(port, () => console.log(`Proxy listo`));
