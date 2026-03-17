@@ -1,13 +1,13 @@
-const Koop = require('@koopjs/koop')
-const nominatim = require('koop-provider-nominatim')
+const Koop = require('koop')
+const nominatim = require('@koopjs/provider-nominatim')
 const express = require('express')
 
 const koop = new Koop()
-// Registra el proveedor de Nominatim
 koop.register(nominatim)
 
 const app = express()
-// Esto es vital para que ArcGIS Online no bloquee la petición
+
+// Habilitar CORS para que ArcGIS Online no bloquee la petición
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
