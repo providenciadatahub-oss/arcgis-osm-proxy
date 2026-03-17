@@ -5,7 +5,7 @@ const app = express();
 
 app.use(cors());
 
-// ESTO ES LO QUE ARREGLA LA VALIDACIÓN DE ARCGIS
+// Metadatos obligatorios para engañar a ArcGIS Online
 app.get('/nominatim/rest/services/GeocodeServer', (req, res) => {
     res.json({
         currentVersion: 10.81,
@@ -15,8 +15,9 @@ app.get('/nominatim/rest/services/GeocodeServer', (req, res) => {
         spatialReference: { wkid: 4326, latestWkid: 4326 },
         locatorProperties: { MaxBatchSize: 100, MaxResultSize: 100 },
         locators: [],
-        countries: ["AR", "CL", "MX", "ES", "CO"], // Puedes añadir más países
+        countries: [], 
         shortName: "OSM",
+        // Este campo es VITAL para Experience Builder
         singleLineAddressField: { 
             name: "SingleLine", 
             type: "esriFieldTypeString", 
@@ -55,11 +56,6 @@ app.get('/nominatim/rest/services/GeocodeServer/findAddressCandidates', async (r
     } catch (error) {
         res.status(500).json({ error: "Error de red" });
     }
-});
-
-// Forzar que responda a la URL con o sin barra al final
-app.use('/nominatim/rest/services/GeocodeServer', (req, res) => {
-    res.redirect('/nominatim/rest/services/GeocodeServer');
 });
 
 const port = process.env.PORT || 10000;
