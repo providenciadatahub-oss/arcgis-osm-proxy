@@ -1,5 +1,5 @@
 const Koop = require('@koopjs/koop')
-const nominatim = require('@koopjs/provider-nominatim')
+const nominatim = require('koop-provider-nominatim')
 const express = require('express')
 
 const koop = new Koop()
