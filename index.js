@@ -5,19 +5,16 @@ const app = express();
 
 app.use(cors());
 
-// Metadatos obligatorios para engañar a ArcGIS Online
-app.get('/nominatim/rest/services/GeocodeServer', (req, res) => {
+// Ruta Raíz del Servicio (Handshake)
+app.get('/arcgis/rest/services/Nominatim/GeocodeServer', (req, res) => {
     res.json({
         currentVersion: 10.81,
-        serviceDescription: "Nominatim Proxy",
+        serviceDescription: "Nominatim Proxy para ArcGIS Online",
         addressTypes: ["StreetAddress"],
-        capabilities: "Geocode,ReverseGeocode",
+        capabilities: "Geocode",
         spatialReference: { wkid: 4326, latestWkid: 4326 },
         locatorProperties: { MaxBatchSize: 100, MaxResultSize: 100 },
         locators: [],
-        countries: [], 
-        shortName: "OSM",
-        // Este campo es VITAL para Experience Builder
         singleLineAddressField: { 
             name: "SingleLine", 
             type: "esriFieldTypeString", 
@@ -33,13 +30,14 @@ app.get('/nominatim/rest/services/GeocodeServer', (req, res) => {
     });
 });
 
-app.get('/nominatim/rest/services/GeocodeServer/findAddressCandidates', async (req, res) => {
+// Ruta de búsqueda (Traductor de Nominatim)
+app.get('/arcgis/rest/services/Nominatim/GeocodeServer/findAddressCandidates', async (req, res) => {
     const query = req.query.SingleLine || req.query.address || "";
     if (!query) return res.json({ spatialReference: { wkid: 4326 }, candidates: [] });
 
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=10`, {
-            headers: { 'User-Agent': 'ArcGIS-OSM-Proxy-Utility' }
+            headers: { 'User-Agent': 'ArcGIS-OSM-Proxy-Integration' }
         });
         
         const candidates = response.data.map(item => ({
@@ -59,4 +57,4 @@ app.get('/nominatim/rest/services/GeocodeServer/findAddressCandidates', async (r
 });
 
 const port = process.env.PORT || 10000;
-app.listen(port, () => console.log(`Proxy listo`));
+app.listen(port, () => console.log(`Proxy ArcGIS-Nominatim activo`));
