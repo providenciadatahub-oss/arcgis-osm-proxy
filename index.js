@@ -6,8 +6,7 @@ const koop = new Koop()
 koop.register(nominatim)
 
 const app = express()
-
-// Ruta de diagnóstico: si entras a la URL verás este mensaje
+// Ruta para verificar que el servidor está vivo
 app.get('/', (req, res) => res.send('Proxy GIS Online ✅ Activo'))
 
 app.use(koop.server)
