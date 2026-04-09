@@ -1,8 +1,14 @@
+[build]
+  command = "npm install"
+  functions = "."
+
+[functions]
+  # Aquí corregimos el error: node_bundle se configura implícitamente 
+  # al definir las propiedades internas.
+  node_bundle = {} 
+  external_node_modules = ["express", "axios", "cors"]
+
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/index"
   status = 200
-
-[functions]
-  external_node_modules = ["express", "axios", "cors"]
-  node_bundle = true
